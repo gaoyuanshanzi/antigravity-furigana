@@ -56,42 +56,64 @@ app.post('/api/process', async (req, res) => {
 
         await ensureKuroshiro();
 
-        // 1. Generate Furigana HTML (using <ruby> tags)
-        const furiganaHtml = await kuroshiro.convert(text, {
-            to: 'hiragana',
-            mode: 'furigana'
-        });
+        // Split text by newlines to process line-by-line
+        const lines = text.split('\n');
+        const results = [];
 
-        // 2. Generate parenthesized Okurigana for TXT file format
-        const okuriganaText = await kuroshiro.convert(text, {
-            to: 'hiragana',
-            mode: 'okurigana'
-        });
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            
+            // If the line is empty, preserve it as a blank space in outputs
+            if (!trimmedLine) {
+                results.push({
+                    originalText: '',
+                    furiganaHtml: '<div class="empty-line-placeholder">&nbsp;</div>',
+                    okuriganaText: '',
+                    translation: ''
+                });
+                continue;
+            }
 
-        // 3. Translate Japanese to Korean using free Google Translate endpoint
-        let translation = '';
-        try {
-            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=ja&tl=ko&q=${encodeURIComponent(text)}`;
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`Translation API returned status ${response.status}`);
+            // 1. Generate Furigana HTML
+            const furiganaHtml = await kuroshiro.convert(line, {
+                to: 'hiragana',
+                mode: 'furigana'
+            });
+
+            // 2. Generate parenthesized Okurigana for TXT file format
+            const okuriganaText = await kuroshiro.convert(line, {
+                to: 'hiragana',
+                mode: 'okurigana'
+            });
+
+            // 3. Translate to Korean
+            let translation = '';
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=ja&tl=ko&q=${encodeURIComponent(line)}`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Translation API returned status ${response.status}`);
+                }
+                const data = await response.json();
+                if (data && data[0]) {
+                    translation = data[0].map(item => item[0]).join('');
+                } else {
+                    translation = '번역 결과를 파싱할 수 없습니다.';
+                }
+            } catch (transErr) {
+                console.error(`Translation error for line: "${line}":`, transErr);
+                translation = `[번역 오류] ${transErr.message}`;
             }
-            const data = await response.json();
-            if (data && data[0]) {
-                translation = data[0].map(item => item[0]).join('');
-            } else {
-                translation = '번역 결과를 파싱할 수 없습니다.';
-            }
-        } catch (transErr) {
-            console.error('Translation error:', transErr);
-            translation = `[번역 오류] ${transErr.message}`;
+
+            results.push({
+                originalText: line,
+                furiganaHtml,
+                okuriganaText,
+                translation
+            });
         }
 
-        res.json({
-            furiganaHtml,
-            okuriganaText,
-            translation
-        });
+        res.json({ results });
     } catch (err) {
         console.error('API Error:', err);
         res.status(500).json({ error: err.message || 'Internal Server Error' });

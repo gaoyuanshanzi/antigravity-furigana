@@ -36,8 +36,14 @@ document.addEventListener('DOMContentLoaded', () => {
     btnRun.addEventListener('click', processText);
     btnExport.addEventListener('click', exportToTxt);
     
-    btnCopyFurigana.addEventListener('click', () => copyToClipboard(state.okuriganaText || outputFurigana.innerText, '후리가나 텍스트가 복사되었습니다.'));
-    btnCopyTranslation.addEventListener('click', () => copyToClipboard(state.translationText || outputTranslation.innerText, '번역 텍스트가 복사되었습니다.'));
+    btnCopyFurigana.addEventListener('click', () => copyToClipboard(state.okuriganaText, '후리가나 텍스트가 복사되었습니다.'));
+    btnCopyTranslation.addEventListener('click', () => copyToClipboard(state.translationText, '번역 텍스트가 복사되었습니다.'));
+    
+    // Bind window resize to recalculate height alignment
+    window.addEventListener('resize', syncHeights);
+    
+    // Bind scroll synchronization
+    setupScrollSync();
 });
 
 // Theme Management
@@ -52,6 +58,7 @@ function initTheme() {
     }
 }
 
+// Toggle Theme
 function toggleTheme() {
     if (body.classList.contains('dark-theme')) {
         body.classList.remove('dark-theme');
@@ -127,6 +134,52 @@ function clearAll() {
     showToast('입력이 초기화되었습니다.');
 }
 
+// Sync heights of corresponding sentence/line items in Panel 2 & Panel 3
+function syncHeights() {
+    const fItems = outputFurigana.querySelectorAll('.line-item');
+    const tItems = outputTranslation.querySelectorAll('.line-item');
+    
+    if (fItems.length === 0 || tItems.length === 0) return;
+    
+    // Reset heights first to let browser calculate natural heights
+    fItems.forEach(item => item.style.height = 'auto');
+    tItems.forEach(item => item.style.height = 'auto');
+    
+    // Sync heights line by line
+    for (let i = 0; i < fItems.length; i++) {
+        const fItem = fItems[i];
+        const tItem = tItems[i];
+        if (fItem && tItem) {
+            const maxHeight = Math.max(fItem.offsetHeight, tItem.offsetHeight);
+            fItem.style.height = `${maxHeight}px`;
+            tItem.style.height = `${maxHeight}px`;
+        }
+    }
+}
+
+// Synchronize scroll position between Furigana and Translation panels
+function setupScrollSync() {
+    let activeScrollSource = null;
+
+    outputFurigana.addEventListener('scroll', () => {
+        if (activeScrollSource === 'translation') return;
+        activeScrollSource = 'furigana';
+        outputTranslation.scrollTop = outputFurigana.scrollTop;
+        
+        clearTimeout(outputFurigana.scrollTimeout);
+        outputFurigana.scrollTimeout = setTimeout(() => { activeScrollSource = null; }, 50);
+    });
+
+    outputTranslation.addEventListener('scroll', () => {
+        if (activeScrollSource === 'furigana') return;
+        activeScrollSource = 'translation';
+        outputFurigana.scrollTop = outputFurigana.scrollTop;
+        
+        clearTimeout(outputTranslation.scrollTimeout);
+        outputTranslation.scrollTimeout = setTimeout(() => { activeScrollSource = null; }, 50);
+    });
+}
+
 // Call API to Process Text
 async function processText() {
     const text = inputJa.value.trim();
@@ -159,15 +212,33 @@ async function processText() {
         const data = await response.json();
         
         // Save to state
-        state.originalText = text;
-        state.okuriganaText = data.okuriganaText;
-        state.translationText = data.translationText;
+        state.originalText = data.results.map(r => r.originalText).join('\n');
+        state.okuriganaText = data.results.map(r => r.okuriganaText).join('\n');
+        state.translationText = data.results.map(r => r.translation).join('\n');
         
-        // Update Panel 2 (Furigana HTML)
-        outputFurigana.innerHTML = data.furiganaHtml;
+        // Clear outputs
+        outputFurigana.innerHTML = '';
+        outputTranslation.innerHTML = '';
         
-        // Update Panel 3 (Korean Translation)
-        outputTranslation.textContent = data.translation;
+        // Render lines dynamically
+        data.results.forEach((item, index) => {
+            // Panel 2 Furigana Item
+            const fDiv = document.createElement('div');
+            fDiv.className = 'line-item';
+            fDiv.setAttribute('data-index', index);
+            fDiv.innerHTML = item.furiganaHtml;
+            outputFurigana.appendChild(fDiv);
+            
+            // Panel 3 Translation Item
+            const tDiv = document.createElement('div');
+            tDiv.className = 'line-item';
+            tDiv.setAttribute('data-index', index);
+            tDiv.textContent = item.translation;
+            outputTranslation.appendChild(tDiv);
+        });
+        
+        // Sync the heights of the lines to ensure horizontal alignment
+        syncHeights();
         
         // Enable export button
         btnExport.disabled = false;

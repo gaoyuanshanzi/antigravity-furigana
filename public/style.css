@@ -242,6 +242,20 @@ body {
     white-space: pre-wrap;
 }
 
+.line-item {
+    padding: 0.85rem 0;
+    border-bottom: 1px dashed var(--border-color);
+    box-sizing: border-box;
+}
+
+.line-item:last-child {
+    border-bottom: none;
+}
+
+.empty-line-placeholder {
+    height: 1.5rem;
+}
+
 .panel-furigana .output-container {
     font-family: var(--font-jp);
 }
