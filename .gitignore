@@ -2,3 +2,5 @@ node_modules/
 dict/
 .vercel/
 *.log
+
+.vercel
