@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일본어 후리가나 & 번역 학습기</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <span class="logo-icon">🇯🇵</span>
+                <h1>Japanese <span class="accent-text">Furigana Study</span></h1>
+            </div>
+            <div class="action-area">
+                <button id="theme-toggle" class="btn-icon" title="테마 변경">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+                <button id="btn-export" class="btn-secondary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-svg"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    TXT 저장
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace-grid">
+            <!-- Left Panel: Input -->
+            <section class="panel panel-input" id="panel-1">
+                <div class="panel-header">
+                    <span class="panel-badge badge-red">INPUT</span>
+                    <h2>일본어 문장 입력</h2>
+                    <button id="btn-clear" class="btn-text" title="입력 비우기">지우기</button>
+                </div>
+                <div class="panel-body">
+                    <textarea id="input-ja" placeholder="여기에 일본어 문장을 입력하세요.&#10;예: 日本語の勉強はとても面白いです。한자 위에 후리가나가 표시됩니다."></textarea>
+                </div>
+                <div class="panel-footer">
+                    <div class="char-count"><span id="count-num">0</span> 자</div>
+                    <button id="btn-run" class="btn-primary">
+                        <span>실행하기</span>
+                        <div class="spinner hidden"></div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Center Panel: Furigana -->
+            <section class="panel panel-output panel-furigana" id="panel-2">
+                <div class="panel-header">
+                    <span class="panel-badge badge-blue">FURIGANA</span>
+                    <h2>후리가나 표기</h2>
+                    <button id="btn-copy-furigana" class="btn-icon-small" title="후리가나 복사">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="small-svg"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
+                <div class="panel-body output-container" id="output-furigana">
+                    <div class="placeholder-text">
+                        일본어 문장을 입력하고 <strong>실행하기</strong>를 누르면 한자 위에 후리가나가 표시됩니다.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Translation -->
+            <section class="panel panel-output panel-translation" id="panel-3">
+                <div class="panel-header">
+                    <span class="panel-badge badge-green">TRANSLATION</span>
+                    <h2>한국어 번역</h2>
+                    <button id="btn-copy-translation" class="btn-icon-small" title="번역 복사">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="small-svg"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
+                <div class="panel-body output-container" id="output-translation">
+                    <div class="placeholder-text">
+                        일본어 문장의 한국어 번역문이 여기에 표시됩니다.
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden"></div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

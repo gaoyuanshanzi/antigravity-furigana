@@ -1,0 +1,16 @@
+{
+  "name": "antigravity-furigana",
+  "version": "1.0.0",
+  "description": "일본어 후리가나 및 한국어 번역 학습기",
+  "main": "api/index.js",
+  "scripts": {
+    "postinstall": "node copy-dict.js",
+    "start": "node api/index.js",
+    "dev": "node api/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "kuroshiro": "^1.1.2",
+    "kuroshiro-analyzer-kuromoji": "^1.1.0"
+  }
+}
